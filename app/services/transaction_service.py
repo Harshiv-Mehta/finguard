@@ -3,11 +3,13 @@ from __future__ import annotations
 from sqlalchemy.orm import Session
 
 from app.models.transaction import Transaction
+from app.models.user import User
 from app.schemas.transaction import TransactionInput
 
 
-def save_transaction(db: Session, payload: TransactionInput, analysis: dict) -> Transaction:
+def save_transaction(db: Session, user: User, payload: TransactionInput, analysis: dict) -> Transaction:
     transaction = Transaction(
+        user_id=user.id,
         balance_before=payload.balance,
         expense_amount=payload.expense_amount,
         category=payload.category.value,
@@ -29,17 +31,18 @@ def save_transaction(db: Session, payload: TransactionInput, analysis: dict) -> 
 
 def list_transactions(
     db: Session,
+    user: User,
     *,
     limit: int = 10,
     offset: int = 0,
     category: str | None = None,
 ) -> list[Transaction]:
-    query = db.query(Transaction).order_by(Transaction.created_at.desc())
+    query = db.query(Transaction).filter(Transaction.user_id == user.id).order_by(Transaction.created_at.desc())
     if category:
         query = query.filter(Transaction.category == category)
     return query.offset(offset).limit(limit).all()
 
 
-def clear_transactions(db: Session) -> None:
-    db.query(Transaction).delete()
+def clear_transactions(db: Session, user: User) -> None:
+    db.query(Transaction).filter(Transaction.user_id == user.id).delete()
     db.commit()

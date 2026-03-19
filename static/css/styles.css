@@ -22,10 +22,27 @@ body {
         linear-gradient(135deg, #050b14 0%, #0a1322 45%, #11233c 100%);
 }
 
+.auth-shell {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+}
+
 .page-shell {
     max-width: 1380px;
     margin: 0 auto;
     padding: 32px 20px 48px;
+}
+
+.auth-panel {
+    width: min(980px, 100%);
+    padding: 28px;
+    border: 1px solid var(--line);
+    border-radius: 28px;
+    background: rgba(10, 20, 36, 0.82);
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(16px);
 }
 
 .hero {
@@ -74,6 +91,42 @@ body {
 .hero-panel {
     display: grid;
     gap: 16px;
+}
+
+.auth-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+    margin-top: 28px;
+}
+
+.auth-card {
+    display: grid;
+    gap: 16px;
+}
+
+.auth-submit {
+    font-weight: 700;
+}
+
+.auth-message {
+    margin-top: 20px;
+}
+
+.account-badge {
+    display: grid;
+    gap: 10px;
+}
+
+.compact-btn {
+    width: fit-content;
+    padding: 10px 14px;
+}
+
+.error-message {
+    border: 1px solid rgba(251, 113, 133, 0.4);
+    background: rgba(127, 29, 29, 0.35);
+    color: #fecaca;
 }
 
 .stat-badge,
@@ -300,6 +353,7 @@ th {
 
 @media (max-width: 1080px) {
     .hero,
+    .auth-grid,
     .dashboard-strip,
     .transaction-form,
     .metrics-grid,

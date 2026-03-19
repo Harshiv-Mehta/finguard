@@ -3,11 +3,17 @@ from __future__ import annotations
 from sqlalchemy.orm import Session
 
 from app.models.transaction import Transaction
+from app.models.user import User
 from app.services.analysis_service import transactions_to_dataframe
 
 
-def build_dashboard(db: Session) -> dict:
-    rows = db.query(Transaction).order_by(Transaction.created_at.asc()).all()
+def build_dashboard(db: Session, user: User) -> dict:
+    rows = (
+        db.query(Transaction)
+        .filter(Transaction.user_id == user.id)
+        .order_by(Transaction.created_at.asc())
+        .all()
+    )
     if not rows:
         return {
             "total_transactions": 0,

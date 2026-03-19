@@ -6,15 +6,20 @@ import pandas as pd
 from sqlalchemy.orm import Session
 
 from app.models.transaction import Transaction
+from app.models.user import User
 from app.schemas.transaction import RiskLevel, TransactionInput
 from model import predict_risky_probability
 from risk_engine import assess_transaction_risk
 from simulation import simulate_financial_impact
 
 
-def get_recent_expense_count(db: Session, days: int = 3) -> int:
+def get_recent_expense_count(db: Session, user: User, days: int = 3) -> int:
     cutoff = datetime.now(UTC) - timedelta(days=days)
-    return db.query(Transaction).filter(Transaction.created_at >= cutoff).count()
+    return (
+        db.query(Transaction)
+        .filter(Transaction.user_id == user.id, Transaction.created_at >= cutoff)
+        .count()
+    )
 
 
 def build_recommendation(risk_level: str, remaining_balance: float, ml_probability: float | None) -> str:
@@ -71,8 +76,8 @@ def transactions_to_dataframe(rows: list[Transaction]) -> pd.DataFrame:
     )
 
 
-def analyze_transaction(db: Session, payload: TransactionInput) -> dict:
-    recent_expense_count = get_recent_expense_count(db)
+def analyze_transaction(db: Session, user: User, payload: TransactionInput) -> dict:
+    recent_expense_count = get_recent_expense_count(db, user)
     risk_result = assess_transaction_risk(
         balance=payload.balance,
         expense_amount=payload.expense_amount,
@@ -89,7 +94,12 @@ def analyze_transaction(db: Session, payload: TransactionInput) -> dict:
         savings_goal=payload.savings_goal,
     )
 
-    rows = db.query(Transaction).order_by(Transaction.created_at.asc()).all()
+    rows = (
+        db.query(Transaction)
+        .filter(Transaction.user_id == user.id)
+        .order_by(Transaction.created_at.asc())
+        .all()
+    )
     history_df = transactions_to_dataframe(rows)
     ml_probability = predict_risky_probability(
         history_df,

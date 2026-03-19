@@ -1,6 +1,7 @@
 const form = document.getElementById("analysis-form");
 const saveButton = document.getElementById("save-btn");
 const resetButton = document.getElementById("reset-btn");
+const logoutButton = document.getElementById("logout-btn");
 
 let pendingPayload = null;
 let categoryChart = null;
@@ -27,6 +28,25 @@ const renderList = (id, items, emptyText) => {
 const riskPill = (level) => {
     const lower = level.toLowerCase();
     return `<span class="risk-pill ${lower}">${level}</span>`;
+};
+
+const redirectToLogin = () => {
+    window.location.href = "/";
+};
+
+const fetchJson = async (url, options = {}) => {
+    const response = await fetch(url, options);
+    if (response.status === 401) {
+        redirectToLogin();
+        throw new Error("Unauthorized");
+    }
+
+    const data = response.status === 204 ? null : await response.json();
+    if (!response.ok) {
+        throw new Error(data?.detail || "Request failed.");
+    }
+
+    return data;
 };
 
 const renderHistory = (transactions) => {
@@ -99,8 +119,7 @@ const renderBalanceChart = (items) => {
 };
 
 const fetchDashboard = async () => {
-    const response = await fetch("/api/dashboard");
-    const dashboard = await response.json();
+    const dashboard = await fetchJson("/api/dashboard");
     setText("total-spending", currency(dashboard.total_spending));
     setText("average-expense", currency(dashboard.average_expense));
     setText("risky-share", `${dashboard.risky_share.toFixed(0)}%`);
@@ -121,45 +140,50 @@ form.addEventListener("submit", async (event) => {
         }
     });
 
-    const response = await fetch("/api/analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(pendingPayload),
-    });
+    try {
+        const data = await fetchJson("/api/analyze", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(pendingPayload),
+        });
 
-    const data = await response.json();
-    if (!response.ok) {
-        setText("main-message", data.detail || "Unable to analyze transaction.");
-        return;
+        saveButton.disabled = false;
+        setText("risk-level", data.risk_level);
+        setText("risk-score", `${data.risk_score}/100`);
+        setText("remaining-balance", currency(data.remaining_balance));
+        setText("main-message", data.message);
+        setText("live-risk-badge", `${data.risk_level} risk - ${data.risk_score}/100`);
+        setText("live-recommendation", data.recommendation);
+        renderList("alerts-list", data.alerts, "No additional smart alerts.");
+        renderList("impact-list", data.impact_messages, "No impact messages.");
+    } catch (error) {
+        if (error.message !== "Unauthorized") {
+            setText("main-message", error.message || "Unable to analyze transaction.");
+        }
     }
-
-    saveButton.disabled = false;
-    setText("risk-level", data.risk_level);
-    setText("risk-score", `${data.risk_score}/100`);
-    setText("remaining-balance", currency(data.remaining_balance));
-    setText("main-message", data.message);
-    setText("live-risk-badge", `${data.risk_level} risk · ${data.risk_score}/100`);
-    setText("live-recommendation", data.recommendation);
-    renderList("alerts-list", data.alerts, "No additional smart alerts.");
-    renderList("impact-list", data.impact_messages, "No impact messages.");
 });
 
 saveButton.addEventListener("click", async () => {
     if (!pendingPayload) return;
-    const response = await fetch("/api/transactions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(pendingPayload),
-    });
-    if (response.ok) {
+
+    try {
+        await fetchJson("/api/transactions", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(pendingPayload),
+        });
         saveButton.disabled = true;
         await fetchDashboard();
+    } catch (error) {
+        if (error.message !== "Unauthorized") {
+            setText("main-message", error.message || "Unable to save transaction.");
+        }
     }
 });
 
 resetButton.addEventListener("click", async () => {
-    const response = await fetch("/api/transactions", { method: "DELETE" });
-    if (response.ok) {
+    try {
+        await fetchJson("/api/transactions", { method: "DELETE" });
         pendingPayload = null;
         saveButton.disabled = true;
         setText("risk-level", "-");
@@ -171,7 +195,18 @@ resetButton.addEventListener("click", async () => {
         renderList("alerts-list", [], "No additional smart alerts.");
         renderList("impact-list", [], "No impact messages.");
         await fetchDashboard();
+    } catch (error) {
+        if (error.message !== "Unauthorized") {
+            setText("main-message", error.message || "Unable to reset history.");
+        }
     }
 });
 
-fetchDashboard();
+logoutButton.addEventListener("click", async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
+    redirectToLogin();
+});
+
+fetchDashboard().catch(() => {
+    setText("main-message", "Unable to load dashboard.");
+});

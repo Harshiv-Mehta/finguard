@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinGuard Login</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <div class="auth-shell">
+        <section class="auth-panel">
+            <div>
+                <p class="eyebrow">Private Financial Workspace</p>
+                <h1>Sign in to keep your spending history and risk analysis private.</h1>
+                <p class="hero-copy">
+                    FinGuard now protects analysis, saved transactions, and dashboard insights behind an account
+                    so each user only sees their own financial data.
+                </p>
+            </div>
+
+            <div class="auth-grid">
+                <form id="login-form" class="card auth-card">
+                    <div class="card-header">
+                        <h2>Login</h2>
+                        <p>Use your existing account to open your dashboard.</p>
+                    </div>
+                    <label>
+                        <span>Email</span>
+                        <input type="email" name="email" required>
+                    </label>
+                    <label>
+                        <span>Password</span>
+                        <input type="password" name="password" minlength="8" required>
+                    </label>
+                    <button type="submit" class="primary-btn">Login</button>
+                </form>
+
+                <form id="register-form" class="card auth-card">
+                    <div class="card-header">
+                        <h2>Create Account</h2>
+                        <p>Register once, then your data stays isolated to your account.</p>
+                    </div>
+                    <label>
+                        <span>Email</span>
+                        <input type="email" name="email" required>
+                    </label>
+                    <label>
+                        <span>Password</span>
+                        <input type="password" name="password" minlength="8" required>
+                    </label>
+                    <button type="submit" class="secondary-btn auth-submit">Create Account</button>
+                </form>
+            </div>
+
+            <div id="auth-message" class="callout auth-message">Use a strong password with at least 8 characters.</div>
+        </section>
+    </div>
+
+    <script src="/static/js/auth.js"></script>
+</body>
+</html>
