@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinGuard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="page-shell">
+        <header class="hero">
+            <div>
+                <p class="eyebrow">AI Financial Safety Net</p>
+                <h1>FinGuard helps users catch risky spending before the money leaves.</h1>
+                <p class="hero-copy">
+                    Analyze the impact of any expense, surface impulsive behavior, and track a living history
+                    with a professional dashboard backed by a real Python API and SQLite database.
+                </p>
+            </div>
+            <div class="hero-panel">
+                <div class="stat-badge">
+                    <span>Live insight</span>
+                    <strong id="live-risk-badge">Waiting for analysis</strong>
+                </div>
+                <div class="stat-badge">
+                    <span>Recommendation</span>
+                    <strong id="live-recommendation">Add a transaction to begin.</strong>
+                </div>
+            </div>
+        </header>
+
+        <main class="grid">
+            <section class="card form-card">
+                <div class="card-header">
+                    <h2>Transaction Simulator</h2>
+                    <p>Run a pre-purchase risk check before deciding to save the transaction.</p>
+                </div>
+                <form id="analysis-form" class="transaction-form">
+                    <label>
+                        <span>Current Balance</span>
+                        <input type="number" name="balance" min="1" step="0.01" value="5000" required>
+                    </label>
+                    <label>
+                        <span>Expense Amount</span>
+                        <input type="number" name="expense_amount" min="1" step="0.01" value="800" required>
+                    </label>
+                    <label>
+                        <span>Category</span>
+                        <select name="category">
+                            <option>Food</option>
+                            <option>Shopping</option>
+                            <option>Bills</option>
+                            <option>Travel</option>
+                            <option>Entertainment</option>
+                            <option>Health</option>
+                            <option>Education</option>
+                            <option>Other</option>
+                        </select>
+                    </label>
+                    <label>
+                        <span>Type</span>
+                        <select name="expense_type">
+                            <option>Need</option>
+                            <option>Want</option>
+                        </select>
+                    </label>
+                    <label>
+                        <span>Estimated Monthly Needs</span>
+                        <input type="number" name="monthly_needs" min="0" step="0.01" value="2500" required>
+                    </label>
+                    <label>
+                        <span>Savings Goal</span>
+                        <input type="number" name="savings_goal" min="0" step="0.01" value="1500" required>
+                    </label>
+                    <div class="button-row">
+                        <button type="submit" class="primary-btn">Analyze Transaction</button>
+                        <button type="button" id="save-btn" class="secondary-btn" disabled>Save Analysis</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="card results-card">
+                <div class="card-header">
+                    <h2>Risk Snapshot</h2>
+                    <p>Generated before the transaction is committed to history.</p>
+                </div>
+                <div class="metrics-grid">
+                    <article class="metric-box">
+                        <span>Risk Level</span>
+                        <strong id="risk-level">-</strong>
+                    </article>
+                    <article class="metric-box">
+                        <span>Risk Score</span>
+                        <strong id="risk-score">-</strong>
+                    </article>
+                    <article class="metric-box">
+                        <span>Remaining Balance</span>
+                        <strong id="remaining-balance">-</strong>
+                    </article>
+                </div>
+                <div class="callout" id="main-message">No analysis yet.</div>
+                <div class="insight-grid">
+                    <div>
+                        <h3>Smart Alerts</h3>
+                        <ul id="alerts-list" class="clean-list"></ul>
+                    </div>
+                    <div>
+                        <h3>Impact Outlook</h3>
+                        <ul id="impact-list" class="clean-list"></ul>
+                    </div>
+                </div>
+            </section>
+
+            <section class="dashboard-strip">
+                <article class="mini-card">
+                    <span>Total Spending</span>
+                    <strong id="total-spending">₹ 0.00</strong>
+                </article>
+                <article class="mini-card">
+                    <span>Average Expense</span>
+                    <strong id="average-expense">₹ 0.00</strong>
+                </article>
+                <article class="mini-card">
+                    <span>Risky Share</span>
+                    <strong id="risky-share">0%</strong>
+                </article>
+                <article class="mini-card">
+                    <span>Top Category</span>
+                    <strong id="top-category">None yet</strong>
+                </article>
+            </section>
+
+            <section class="card chart-card">
+                <div class="card-header">
+                    <h2>Spending by Category</h2>
+                    <p>See where risky patterns build up fastest.</p>
+                </div>
+                <canvas id="category-chart"></canvas>
+            </section>
+
+            <section class="card chart-card">
+                <div class="card-header">
+                    <h2>Balance Over Time</h2>
+                    <p>Track how each saved transaction affects resilience.</p>
+                </div>
+                <canvas id="balance-chart"></canvas>
+            </section>
+
+            <section class="card history-card">
+                <div class="card-header history-head">
+                    <div>
+                        <h2>Recent Transactions</h2>
+                        <p>Your latest saved simulations from the database.</p>
+                    </div>
+                    <button type="button" id="reset-btn" class="ghost-btn">Reset History</button>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Category</th>
+                                <th>Type</th>
+                                <th>Amount</th>
+                                <th>Risk</th>
+                                <th>Message</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-body">
+                            <tr><td colspan="6">No saved transactions yet.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

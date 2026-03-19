@@ -1,0 +1,8 @@
+__pycache__
+*.log
+streamlit.log
+streamlit-error.log
+transactions.csv
+finguard.db
+app.py
+data_handler.py

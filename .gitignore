@@ -1,0 +1,6 @@
+.vercel
+__pycache__/
+*.pyc
+*.log
+finguard.db
+transactions.csv
