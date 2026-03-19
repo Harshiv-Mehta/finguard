@@ -29,6 +29,12 @@ dev = [
   "mypy>=1.13.0",
 ]
 
+[tool.setuptools]
+py-modules = ["main", "model", "risk_engine", "simulation", "database", "db_models", "schemas", "services"]
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
 [tool.black]
 line-length = 100
 
